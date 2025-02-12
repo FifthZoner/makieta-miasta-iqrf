@@ -1,7 +1,7 @@
 
 CC5X Version 3.8A, Copyright (c) B Knudsen Data
  * VARIABLE LIST FILE
-Source 'C:\customdpa\CustomDpaHandler-Node.c'
+Source 'C:\makieta-miasta-iqrf\CustomDpaHandler-Node.c'
 Chip = 16LF18877
 
 Sorted by name.
@@ -302,7 +302,7 @@ Size := number of bytes
  P 61  0x1EB3      1  :  0:  CWG3PPS
  P 13  0x0694      1  :  0:  CWG3STR
  P 63  0x1FE4.0    0  :  0:  C_SHAD
- P  -  0x0003.0    0  :  2:  Carry
+ P  -  0x0003.0    0  : 21:  Carry
  P 18  0x090E      1  :  0:  DAC1CON0
  P 18  0x090F      1  :  0:  DAC1CON1
  P 15  0x0798.6    0  :  0:  DACMD
@@ -324,9 +324,9 @@ Size := number of bytes
  P  5  0x02E9      1  :  0:  FRCextraTime
  P 16  0x081E.4    0  :  0:  FREE
  P  -  0x0004      2  :  0:  FSR0
- P  -  0x0005      1  :  0:  FSR0H
+ P  -  0x0005      1  : 32:  FSR0H
  P 63  0x1FE9      1  :  0:  FSR0H_SHAD
- P  -  0x0004      1  :  0:  FSR0L
+ P  -  0x0004      1  : 32:  FSR0L
  P 63  0x1FE8      1  :  0:  FSR0L_SHAD
  P  -  0x0006      2  :  0:  FSR1
  P  -  0x0007      1  :  0:  FSR1H
@@ -343,7 +343,7 @@ Size := number of bytes
  P 17  0x0890.6    0  :  0:  HFOR
  P  4  0x0231      1  :  0:  I2Ctimeout
  P  4  0x0220.0    0  :  0:  I2CwasTimeout
- P  -  0x0000      1  :  0:  INDF0
+ P  -  0x0000      1  : 32:  INDF0
  P  -  0x0001      1  :  0:  INDF1
  P 62  0x1F3C      1  :  0:  INLVLA
  P 62  0x1F47      1  :  0:  INLVLB
@@ -372,7 +372,7 @@ Size := number of bytes
  P 15  0x0796.0    0  :  0:  IOCMD
  P  0  0x0016      1  :  0:  LATA
  P  0  0x0017      1  :  0:  LATB
- P  0  0x0018      1  :  4:  LATC
+ P  0  0x0018      1  : 18:  LATC
  P  0  0x0019      1  :  0:  LATD
  P  0  0x001A      1  :  0:  LATE
  P 17  0x0891.4    0  :  0:  LFOEN
@@ -493,7 +493,7 @@ Size := number of bytes
  P  7  0x0391      1  :  0:  PWM7DCH
  P  7  0x0390      1  :  0:  PWM7DCL
  P 15  0x0799.6    0  :  0:  PWM7MD
- P 12  0x0620     80  :  2:  PeripheralRam
+ P 12  0x0620     80  :  0:  PeripheralRam
  P 62  0x1F10      1  :  0:  RA0PPS
  P 62  0x1F11      1  :  0:  RA1PPS
  P 62  0x1F12      1  :  0:  RA2PPS
@@ -749,7 +749,7 @@ Size := number of bytes
  P 63  0x1FEE      1  :  0:  TOSL
  P  0  0x0011      1  :  0:  TRISA
  P  0  0x0012      1  :  0:  TRISB
- P  0  0x0013      1  :  2:  TRISC
+ P  0  0x0013      1  :  3:  TRISC
  P  0  0x0014      1  :  0:  TRISD
  P  0  0x0015      1  :  0:  TRISE
  P  2  0x011E.1    0  :  0:  TRMT
@@ -790,7 +790,7 @@ Size := number of bytes
  P 14  0x070E.6    0  :  0:  ZCDIF
  P 15  0x0798.0    0  :  0:  ZCDMD
  P 63  0x1FE4.2    0  :  0:  Z_SHAD
- P  -  0x0003.2    0  : 32:  Zero_
+ P  -  0x0003.2    0  : 41:  Zero_
  P  9  0x04BE.1    0  :  0:  _2ByteFRC
  P 11  0x05B7.1    0  :  0:  _2ByteFRCmode
  P  0  0x0042.1    0  :  0:  _3CHTX
@@ -840,6 +840,9 @@ Size := number of bytes
  P  -  0x0004      2  :  0:  address_5
  P  -  0x007C      1  :  0:  bitmapBitMask
  P  -  0x007E      1  :  0:  bitmapByteIndex
+ L 11  0x05C1      1  :  3:  blinks
+ L 11  0x05C1      1  :  3:  blinks_2
+ L 11  0x05C1      1  :  3:  blinks_3
  P  5  0x02EF      1  :  0:  bondingCounter
  P  5  0x02EE      1  :  0:  bondingMask
  P  8  0x0420     64  :  0:  bufferAUX
@@ -847,10 +850,20 @@ Size := number of bytes
  P  6  0x0320     64  :  0:  bufferINFO
  P  9  0x04A0     64  :  0:  bufferRF
  P 11  0x05B7      1  :  0:  configFRC
+ L 11  0x05C1      1  :  3:  counter
+ L 11  0x05C1      1  :  3:  counter_2
+ L 11  0x05C2      1  :  6:  counter_3
+ L 11  0x05C1      1  :  3:  counter_4
+ L 11  0x05C1      1  :  3:  counter_5
+ L 11  0x05C2      1  :  6:  counter_6
+ L 11  0x05C1      1  :  3:  counter_7
+ L 11  0x05C1      1  :  3:  counter_8
+ L 11  0x05C2      1  :  6:  counter_9
  P  0  0x0043.7    0  :  0:  encryptByAccessPassword
  P  -  0x0004      2  :  0:  from
  P  6  0x0336      4  :  0:  hostUserDataReceived
  P  6  0x0336      4  :  0:  hostUserDataToSend
+ L 11  0x05C0      1  : 44:  index
  P 11  0x05B6      1  :  0:  lastRSSI
  P  3  0x01ED      1  :  0:  memoryLimit
  P 11  0x05AB      1  :  0:  memoryOffsetFrom

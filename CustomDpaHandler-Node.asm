@@ -1,11 +1,14 @@
 
 ; CC5X Version 3.8A, Copyright (c) B Knudsen Data
 ; C compiler for the PICmicro family
-; ************  22. Jan 2025  17:39  *************
+; ************  12. Feb 2025  21:58  *************
 
         processor  16LF18877
         radix  DEC
 
+INDF0       EQU   0x00
+FSR0L       EQU   0x04
+FSR0H       EQU   0x05
 Carry       EQU   0
 Zero_       EQU   2
 TRISC       EQU   0x13
@@ -15,11 +18,23 @@ DLEN        EQU   0x2A1
 PNUM        EQU   0x2AE
 PCMD        EQU   0x2AF
 DpaRfMessage EQU   0x4A0
-PeripheralRam EQU   0x620
+index       EQU   0x5C0
+counter     EQU   0x5C1
+counter_2   EQU   0x5C1
+blinks      EQU   0x5C1
+counter_3   EQU   0x5C2
+counter_4   EQU   0x5C1
+counter_5   EQU   0x5C1
+blinks_2    EQU   0x5C1
+counter_6   EQU   0x5C2
+counter_7   EQU   0x5C1
+counter_8   EQU   0x5C1
+blinks_3    EQU   0x5C1
+counter_9   EQU   0x5C2
 
         GOTO main
 
-  ; FILE C:\customdpa\IQRF.h
+  ; FILE C:\makieta-miasta-iqrf\IQRF.h
                         ;// *********************************************************************
                         ;//                     IQRF OS basic include file                      *
                         ;// *********************************************************************
@@ -206,7 +221,7 @@ main
         SLEEP
         GOTO main
 
-  ; FILE C:\customdpa\IQRF-functions.h
+  ; FILE C:\makieta-miasta-iqrf\IQRF-functions.h
                         ;// *********************************************************************
                         ;//                         IQRF OS functions                           *
                         ;// *********************************************************************
@@ -1748,7 +1763,7 @@ setServiceChannel
                         ;#pragma origin __APPLICATION_ADDRESS
         ORG 0x3A00
 
-  ; FILE C:\customdpa\DPA.h
+  ; FILE C:\makieta-miasta-iqrf\DPA.h
                         ;// *********************************************************************
                         ;//   General public DPA header file                                    *
                         ;// *********************************************************************
@@ -3058,7 +3073,7 @@ setServiceChannel
                         ;#pragma origin __APPLICATION_ADDRESS
         ORG 0x3A00
 
-  ; FILE C:\customdpa\DPAcustomHandler.h
+  ; FILE C:\makieta-miasta-iqrf\DPAcustomHandler.h
                         ;// *********************************************************************
                         ;//   Main Custom DPA Handler header                                    *
                         ;// *********************************************************************
@@ -3317,7 +3332,7 @@ DpaApiEntry
                         ;
                         ;#pragma updateBank 1
 
-  ; FILE C:\customdpa\CustomDpaHandler-Node.c
+  ; FILE C:\makieta-miasta-iqrf\CustomDpaHandler-Node.c
                         ;// *********************************************************************
                         ;//   Custom DPA Handler code template                                  *
                         ;// *********************************************************************
@@ -3367,6 +3382,10 @@ DpaApiEntry
                         ;// Must be the 1st defined function in the source code in order to be placed at the correct FLASH location!
                         ;//############################################################################################
                         ;// https://doc.iqrf.org/DpaTechGuide/pages/custom-dpa-handler.html
+                        ;#define PIN1 2
+                        ;#define PIN2 3
+                        ;#define PIN3 5
+                        ;
                         ;bit CustomDpaHandler()
                         ;//############################################################################################
                         ;{
@@ -3386,68 +3405,68 @@ CustomDpaHandler
         BRA   m001
         XORLW 0x03
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x0A
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x1C
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x17
         BTFSC 0x03,Zero_
         BRA   m002
         XORLW 0x0E
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x03
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x0A
         BTFSC 0x03,Zero_
         BRA   m003
         XORLW 0x01
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x0F
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x18
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x14
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x01
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x0E
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x06
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x1E
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x08
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x0C
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x03
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x01
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x0F
         BTFSC 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         XORLW 0x18
         BTFSC 0x03,Zero_
-        BRA   m004
-        BRA   m008
+        GOTO  m047
+        GOTO  m051
                         ;  {
                         ;    // -------------------------------------------------
                         ;    case DpaEvent_Interrupt:
@@ -3467,18 +3486,6 @@ m001    RETURN
                         ;
                         ;      // -------------------------------------------------
                         ;    case DpaEvent_Idle:
-                        ;        /*
-                        ;        LATC.2 = 0;
-                        ;        LATC.5 = 0;
-                        ;        waitMS(255);
-                        ;        LATC.5 = 1;
-                        ;        waitMS(255);
-                        ;        LATC.5 = 0;
-                        ;        LATC.2 = 0;
-                        ;        waitMS(255);
-                        ;        LATC.2 = 1;
-                        ;        waitMS(255);
-                        ;         */
                         ;      // Do a quick background work when RF packet is not received
                         ;      // https://doc.iqrf.org/DpaTechGuide/pages/idle.html
                         ;      break;
@@ -3513,13 +3520,21 @@ m001    RETURN
                         ;    case DpaEvent_Init:
                         ;      // Do a one time initialization before main loop starts
                         ;      // https://doc.iqrf.org/DpaTechGuide/pages/init.html
-                        ;        TRISC.2 = 0;
+                        ;        TRISC.PIN1 = 0;
 m002    MOVLB 0x00
         BCF   TRISC,2
-                        ;        TRISC.5 = 0;
+                        ;	    TRISC.PIN2 = 0;
+        BCF   TRISC,3
+                        ;        TRISC.PIN3 = 0;
         BCF   TRISC,5
+                        ;	    LATC.PIN1 = 0;
+        BCF   LATC,2
+                        ;	    LATC.PIN2 = 0;
+        BCF   LATC,3
+                        ;	    LATC.PIN3 = 0;
+        BCF   LATC,5
                         ;      break;
-        BRA   m008
+        GOTO  m051
                         ;
                         ;      // -------------------------------------------------
                         ;    case DpaEvent_ReceiveDpaRequest:
@@ -3542,48 +3557,622 @@ m003    MOVLB 0x05
         MOVF  PNUM,W
         XORLW 0x05
         BTFSS 0x03,Zero_
-        BRA   m008
+        GOTO  m051
         DECFSZ PCMD,W
-        BRA   m008
+        GOTO  m051
                         ;        {
-                        ;            LATC.2 = PeripheralRam[0];
-        MOVLB 0x0C
-        MOVF  PeripheralRam,W
-        MOVLB 0x00
-        BTFSS 0x03,Zero_
-        BSF   LATC,2
+                        ;            // w pamięci ram od bajtu 0 zapisana jest sekwencja
+                        ;            // kończy się na bajcie o wartości 0
+                        ;            // przy miganiu zakładany jest stan 0 na początku i końcu
+                        ;            // syntax w bajtach kolejno (max 55!:
+                        ;            // <kod> <czas czekania (ms)> <mnożnik opóźnienia> (<mnożnik świecenia przy miganiu>) (<ilość przy miganiu>) ... 0x00 / koniec
+                        ;            // kody:
+                        ;            // 0x00 - koniec
+                        ;            // 0x01 - wylacz pin 1
+                        ;            // 0x02 - wlacz pin 1
+                        ;            // 0x03 - migaj pin 1
+                        ;            // 0x04 - wylacz pin 2
+                        ;            // 0x05 - wlacz pin 2
+                        ;            // 0x06 - migaj pin 2
+                        ;            // 0x07 - wylacz pin 3
+                        ;            // 0x08 - wlacz pin 3
+                        ;            // 0x09 - migaj pin 3
+                        ;
+                        ;            // W przyszłości możnaby skompresować rozkazy w przypadku potrzeby
+                        ;
+                        ;            uns8 index = 0;
+        MOVLB 0x0B
+        CLRF  index
+                        ;            while (PeripheralRam[index] != 0x00 && index < 52) {
+m004    MOVLW 0x20
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
         BTFSC 0x03,Zero_
+        GOTO  m051
+        MOVLW 0x34
+        SUBWF index,W
+        BTFSC 0x03,Carry
+        GOTO  m051
+                        ;                // miganie nie może być wtedy zakodowane
+                        ;                if (index >= 50 && (PeripheralRam[index] == 0x03 || PeripheralRam[index] == 0x06 || PeripheralRam[index] == 0x09)) {
+        MOVLW 0x32
+        SUBWF index,W
+        BTFSS 0x03,Carry
+        BRA   m006
+        MOVLW 0x20
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        XORLW 0x03
+        BTFSC 0x03,Zero_
+        BRA   m005
+        MOVLW 0x20
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        XORLW 0x06
+        BTFSC 0x03,Zero_
+        BRA   m005
+        MOVLW 0x20
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        XORLW 0x09
+        BTFSS 0x03,Zero_
+        BRA   m006
+                        ;                    return 0;
+m005    BCF   0x03,Carry
+        RETURN
+                        ;                }
+                        ;
+                        ;                switch (PeripheralRam[index]) {
+m006    MOVLW 0x20
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        XORLW 0x01
+        BTFSC 0x03,Zero_
+        BRA   m007
+        XORLW 0x03
+        BTFSC 0x03,Zero_
+        BRA   m010
+        XORLW 0x01
+        BTFSC 0x03,Zero_
+        BRA   m013
+        XORLW 0x07
+        BTFSC 0x03,Zero_
+        BRA   m020
+        XORLW 0x01
+        BTFSC 0x03,Zero_
+        BRA   m023
+        XORLW 0x03
+        BTFSC 0x03,Zero_
+        BRA   m026
+        XORLW 0x01
+        BTFSC 0x03,Zero_
+        BRA   m033
+        XORLW 0x0F
+        BTFSC 0x03,Zero_
+        GOTO  m036
+        XORLW 0x01
+        BTFSC 0x03,Zero_
+        GOTO  m039
+        GOTO  m046
+                        ;                    case 0x01:
+                        ;                    {
+                        ;                        uns8 counter = 0;
+m007    MOVLB 0x0B
+        CLRF  counter
+                        ;                        while (counter < PeripheralRam[index + 2]) {
+m008    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter,W
+        BTFSC 0x03,Carry
+        BRA   m009
+                        ;                            waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                            counter++;
+        INCF  counter,1
+                        ;                        }
+        BRA   m008
+                        ;                        LATC.PIN1 = 0;
+m009    MOVLB 0x00
         BCF   LATC,2
-                        ;            LATC.5 = PeripheralRam[1];
-        MOVLB 0x0C
-        MOVF  PeripheralRam+1,W
-        MOVLB 0x00
-        BTFSS 0x03,Zero_
-        BSF   LATC,5
-        BTFSC 0x03,Zero_
+                        ;                        index += 3;
+        MOVLW 0x03
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        BRA   m004
+                        ;                    case 0x02:
+                        ;                    {
+                        ;                        uns8 counter = 0;
+m010    MOVLB 0x0B
+        CLRF  counter_2
+                        ;                        while (counter < PeripheralRam[index + 2]) {
+m011    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_2,W
+        BTFSC 0x03,Carry
+        BRA   m012
+                        ;                            waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                            counter++;
+        INCF  counter_2,1
+                        ;                        }
+        BRA   m011
+                        ;                        LATC.PIN1 = 1;
+m012    MOVLB 0x00
+        BSF   LATC,2
+                        ;                        index += 3;
+        MOVLW 0x03
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        BRA   m004
+                        ;                    case 0x03:
+                        ;                    {
+                        ;                        LATC.PIN1 = 0;
+m013    MOVLB 0x00
+        BCF   LATC,2
+                        ;                        uns8 blinks = 0;
+        MOVLB 0x0B
+        CLRF  blinks
+                        ;                        while (blinks < PeripheralRam[index + 4]) {
+m014    MOVLW 0x24
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF blinks,W
+        BTFSC 0x03,Carry
+        BRA   m019
+                        ;                            uns8 counter = 0;
+        CLRF  counter_3
+                        ;                            while (counter < PeripheralRam[index + 2]) {
+m015    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_3,W
+        BTFSC 0x03,Carry
+        BRA   m016
+                        ;                                waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                                counter++;
+        INCF  counter_3,1
+                        ;                            }
+        BRA   m015
+                        ;                            LATC.PIN1 = 1;
+m016    MOVLB 0x00
+        BSF   LATC,2
+                        ;                            counter = 0;
+        MOVLB 0x0B
+        CLRF  counter_3
+                        ;                            while (counter < PeripheralRam[index + 3]) {
+m017    MOVLW 0x23
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_3,W
+        BTFSC 0x03,Carry
+        BRA   m018
+                        ;                                waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                                counter++;
+        INCF  counter_3,1
+                        ;                            }
+        BRA   m017
+                        ;                            LATC.PIN1 = 0;
+m018    MOVLB 0x00
+        BCF   LATC,2
+                        ;                            blinks++;
+        MOVLB 0x0B
+        INCF  blinks,1
+                        ;                        }
+        BRA   m014
+                        ;                        index += 5;
+m019    MOVLW 0x05
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        BRA   m004
+                        ;                    case 0x04:
+                        ;                    {
+                        ;                        uns8 counter = 0;
+m020    MOVLB 0x0B
+        CLRF  counter_4
+                        ;                        while (counter < PeripheralRam[index + 2]) {
+m021    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_4,W
+        BTFSC 0x03,Carry
+        BRA   m022
+                        ;                            waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                            counter++;
+        INCF  counter_4,1
+                        ;                        }
+        BRA   m021
+                        ;                        LATC.PIN2 = 0;
+m022    MOVLB 0x00
+        BCF   LATC,3
+                        ;                        index += 3;
+        MOVLW 0x03
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        BRA   m004
+                        ;                    case 0x05:
+                        ;                    {
+                        ;                        uns8 counter = 0;
+m023    MOVLB 0x0B
+        CLRF  counter_5
+                        ;                        while (counter < PeripheralRam[index + 2]) {
+m024    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_5,W
+        BTFSC 0x03,Carry
+        BRA   m025
+                        ;                            waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                            counter++;
+        INCF  counter_5,1
+                        ;                        }
+        BRA   m024
+                        ;                        LATC.PIN2 = 1;
+m025    MOVLB 0x00
+        BSF   LATC,3
+                        ;                        index += 3;
+        MOVLW 0x03
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        BRA   m004
+                        ;                    case 0x06:
+                        ;                    {
+                        ;                        LATC.PIN2 = 0;
+m026    MOVLB 0x00
+        BCF   LATC,3
+                        ;                        uns8 blinks = 0;
+        MOVLB 0x0B
+        CLRF  blinks_2
+                        ;                        while (blinks < PeripheralRam[index + 4]) {
+m027    MOVLW 0x24
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF blinks_2,W
+        BTFSC 0x03,Carry
+        BRA   m032
+                        ;                            uns8 counter = 0;
+        CLRF  counter_6
+                        ;                            while (counter < PeripheralRam[index + 2]) {
+m028    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_6,W
+        BTFSC 0x03,Carry
+        BRA   m029
+                        ;                                waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                                counter++;
+        INCF  counter_6,1
+                        ;                            }
+        BRA   m028
+                        ;                            LATC.PIN2 = 1;
+m029    MOVLB 0x00
+        BSF   LATC,3
+                        ;                            counter = 0;
+        MOVLB 0x0B
+        CLRF  counter_6
+                        ;                            while (counter < PeripheralRam[index + 3]) {
+m030    MOVLW 0x23
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_6,W
+        BTFSC 0x03,Carry
+        BRA   m031
+                        ;                                waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                                counter++;
+        INCF  counter_6,1
+                        ;                            }
+        BRA   m030
+                        ;                            LATC.PIN2 = 0;
+m031    MOVLB 0x00
+        BCF   LATC,3
+                        ;                            blinks++;
+        MOVLB 0x0B
+        INCF  blinks_2,1
+                        ;                        }
+        BRA   m027
+                        ;                        index += 5;
+m032    MOVLW 0x05
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        GOTO  m004
+                        ;                    case 0x07:
+                        ;                    {
+                        ;                        uns8 counter = 0;
+m033    MOVLB 0x0B
+        CLRF  counter_7
+                        ;                        while (counter < PeripheralRam[index + 2]) {
+m034    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_7,W
+        BTFSC 0x03,Carry
+        BRA   m035
+                        ;                            waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                            counter++;
+        INCF  counter_7,1
+                        ;                        }
+        BRA   m034
+                        ;                        LATC.PIN3 = 0;
+m035    MOVLB 0x00
         BCF   LATC,5
-                        ;            /*
-                        ;            uns8 counter = 0;
-                        ;            while (counter < PeripheralRam[0]) {
-                        ;                setLEDR();
-                        ;                waitMS(PeripheralRam[1]);
-                        ;                stopLEDR();
-                        ;                waitMS(PeripheralRam[2]);
-                        ;                counter++;
+                        ;                        index += 3;
+        MOVLW 0x03
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        GOTO  m004
+                        ;                    case 0x08:
+                        ;                    {
+                        ;                        uns8 counter = 0;
+m036    MOVLB 0x0B
+        CLRF  counter_8
+                        ;                        while (counter < PeripheralRam[index + 2]) {
+m037    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_8,W
+        BTFSC 0x03,Carry
+        BRA   m038
+                        ;                            waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                            counter++;
+        INCF  counter_8,1
+                        ;                        }
+        BRA   m037
+                        ;                        LATC.PIN3 = 1;
+m038    MOVLB 0x00
+        BSF   LATC,5
+                        ;                        index += 3;
+        MOVLW 0x03
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        GOTO  m004
+                        ;                    case 0x09:
+                        ;                    {
+                        ;                        LATC.PIN3 = 0;
+m039    MOVLB 0x00
+        BCF   LATC,5
+                        ;                        uns8 blinks = 0;
+        MOVLB 0x0B
+        CLRF  blinks_3
+                        ;                        while (blinks < PeripheralRam[index + 4]) {
+m040    MOVLW 0x24
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF blinks_3,W
+        BTFSC 0x03,Carry
+        BRA   m045
+                        ;                            uns8 counter = 0;
+        CLRF  counter_9
+                        ;                            while (counter < PeripheralRam[index + 2]) {
+m041    MOVLW 0x22
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_9,W
+        BTFSC 0x03,Carry
+        BRA   m042
+                        ;                                waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                                counter++;
+        INCF  counter_9,1
+                        ;                            }
+        BRA   m041
+                        ;                            LATC.PIN3 = 1;
+m042    MOVLB 0x00
+        BSF   LATC,5
+                        ;                            counter = 0;
+        MOVLB 0x0B
+        CLRF  counter_9
+                        ;                            while (counter < PeripheralRam[index + 3]) {
+m043    MOVLW 0x23
+        MOVLB 0x0B
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        SUBWF counter_9,W
+        BTFSC 0x03,Carry
+        BRA   m044
+                        ;                                waitMS(PeripheralRam[index + 1]);
+        MOVLW 0x21
+        ADDWF index,W
+        MOVWF FSR0L
+        MOVLW 0x06
+        MOVWF FSR0H
+        MOVF  INDF0,W
+        CALL  waitMS
+                        ;                                counter++;
+        INCF  counter_9,1
+                        ;                            }
+        BRA   m043
+                        ;                            LATC.PIN3 = 0;
+m044    MOVLB 0x00
+        BCF   LATC,5
+                        ;                            blinks++;
+        MOVLB 0x0B
+        INCF  blinks_3,1
+                        ;                        }
+        BRA   m040
+                        ;                        index += 5;
+m045    MOVLW 0x05
+        MOVLB 0x0B
+        ADDWF index,1
+                        ;                    }
+                        ;                        break;
+        GOTO  m004
+                        ;                    default:
+                        ;                        return 0;
+m046    BCF   0x03,Carry
+        RETURN
+                        ;                }
                         ;            }
-                        ;            counter = 0;
-                        ;            while (counter < PeripheralRam[3]) {
-                        ;                setLEDG();
-                        ;                waitMS(PeripheralRam[4]);
-                        ;                stopLEDG();
-                        ;                waitMS(PeripheralRam[5]);
-                        ;                counter++;
-                        ;            }*/
                         ;        }
                         ;      // Called after DPA request was processed and after DPA response was sent
                         ;      // https://doc.iqrf.org/DpaTechGuide/pages/notification.html
                         ;      break;
-        BRA   m008
                         ;
                         ;      // -------------------------------------------------
                         ;    case DpaEvent_AfterRouting:
@@ -3685,16 +4274,16 @@ m003    MOVLB 0x05
                         ;      // Called to interpret DPA request for peripherals
                         ;      // https://doc.iqrf.org/DpaTechGuide/pages/EventDpaRequest.html
                         ;      IfDpaEnumPeripherals_Else_PeripheralInfo_Else_PeripheralRequest()
-m004    MOVLB 0x05
+m047    MOVLB 0x05
         MOVF  DLEN,1
         BTFSS 0x03,Zero_
-        BRA   m007
+        BRA   m050
         MOVF  PCMD,W
         XORLW 0x3F
         BTFSS 0x03,Zero_
-        BRA   m007
+        BRA   m050
         INCFSZ PNUM,W
-        BRA   m006
+        BRA   m049
                         ;      {
                         ;        // -------------------------------------------------
                         ;        // Peripheral enumeration
@@ -3710,7 +4299,7 @@ m004    MOVLB 0x05
                         ;
                         ;DpaHandleReturnTRUE:
                         ;        return TRUE;
-m005    BSF   0x03,Carry
+m048    BSF   0x03,Carry
         RETURN
                         ;      }
                         ;      else
@@ -3720,11 +4309,11 @@ m005    BSF   0x03,Carry
                         ;      // https://doc.iqrf.org/DpaTechGuide/pages/get-peripheral-info.html
                         ;
                         ;      if ( _PNUM == PNUM_USER + 0 ) // ?
-m006    MOVLB 0x05
+m049    MOVLB 0x05
         MOVF  PNUM,W
         XORLW 0x20
         BTFSS 0x03,Zero_
-        BRA   m008
+        BRA   m051
                         ;      {
                         ;        _DpaMessage.PeripheralInfoAnswer.PerT = 0; // PERIPHERAL_TYPE_?
         MOVLB 0x09
@@ -3736,7 +4325,7 @@ m006    MOVLB 0x05
                         ;        _DpaMessage.PeripheralInfoAnswer.Par2 = 0; // ?
         CLRF  DpaRfMessage+3
                         ;        goto DpaHandleReturnTRUE;
-        BRA   m005
+        BRA   m048
                         ;      }
                         ;
                         ;      break;
@@ -3747,18 +4336,18 @@ m006    MOVLB 0x05
                         ;      // https://doc.iqrf.org/DpaTechGuide/pages/handle-peripheral-request.html
                         ;
                         ;      if ( _PNUM == PNUM_USER + 0 ) // ?
-m007    MOVLB 0x05
+m050    MOVLB 0x05
         MOVF  PNUM,W
         XORLW 0x20
         BTFSS 0x03,Zero_
-        BRA   m008
+        BRA   m051
                         ;      {
                         ;        if ( _PCMD == 0 ) // ????
         MOVF  PCMD,1
         BTFSC 0x03,Zero_
                         ;        {
                         ;          goto DpaHandleReturnTRUE;
-        BRA   m005
+        BRA   m048
                         ;        }
                         ;      }
                         ;
@@ -3767,10 +4356,10 @@ m007    MOVLB 0x05
                         ;
                         ;DpaHandleReturnFALSE:
                         ;  return FALSE;
-m008    BCF   0x03,Carry
+m051    BCF   0x03,Carry
         RETURN
 
-  ; FILE C:\customdpa\DPAcustomHandler.h
+  ; FILE C:\makieta-miasta-iqrf\DPAcustomHandler.h
                         ;// *********************************************************************
                         ;//   Main Custom DPA Handler header                                    *
                         ;// *********************************************************************
@@ -4323,10 +4912,10 @@ _DpaApiSetRfDefaults
 ; 0x3979 P7    2 word(s)  0 % : addressBitmap
 ; 0x397C P7    2 word(s)  0 % : setServiceChannel
 ; 0x3A08 P7    4 word(s)  0 % : DpaApiEntry
-; 0x3A20 P7  132 word(s)  6 % : CustomDpaHandler
+; 0x3A20 P7  566 word(s) 27 % : CustomDpaHandler
 
-; RAM usage: 1088 bytes (0 local), 3008 bytes free
-; Maximum call level: 2
+; RAM usage: 1091 bytes (3 local), 3005 bytes free
+; Maximum call level: 3
 ;  Codepage 0 has    6 word(s) :   0 %
 ;  Codepage 1 has    0 word(s) :   0 %
 ;  Codepage 2 has    0 word(s) :   0 %
@@ -4334,7 +4923,7 @@ _DpaApiSetRfDefaults
 ;  Codepage 4 has    0 word(s) :   0 %
 ;  Codepage 5 has    0 word(s) :   0 %
 ;  Codepage 6 has    0 word(s) :   0 %
-;  Codepage 7 has  351 word(s) :  17 %
+;  Codepage 7 has  785 word(s) :  38 %
 ;  Codepage 8 has    0 word(s) :   0 %
 ;  Codepage 9 has    0 word(s) :   0 %
 ;  Codepage 10 has    0 word(s) :   0 %
@@ -4343,4 +4932,4 @@ _DpaApiSetRfDefaults
 ;  Codepage 13 has    0 word(s) :   0 %
 ;  Codepage 14 has    0 word(s) :   0 %
 ;  Codepage 15 has    0 word(s) :   0 %
-; Total of 357 code words (1 %)
+; Total of 791 code words (2 %)

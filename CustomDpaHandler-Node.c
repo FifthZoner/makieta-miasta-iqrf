@@ -47,6 +47,10 @@
 // Must be the 1st defined function in the source code in order to be placed at the correct FLASH location!
 //############################################################################################
 // https://doc.iqrf.org/DpaTechGuide/pages/custom-dpa-handler.html
+#define PIN1 2
+#define PIN2 3
+#define PIN3 5
+
 bit CustomDpaHandler()
 //############################################################################################
 {
@@ -76,18 +80,6 @@ bit CustomDpaHandler()
 
       // -------------------------------------------------
     case DpaEvent_Idle:
-        /*
-        LATC.2 = 0;
-        LATC.5 = 0;
-        waitMS(255);
-        LATC.5 = 1;
-        waitMS(255);
-        LATC.5 = 0;
-        LATC.2 = 0;
-        waitMS(255);
-        LATC.2 = 1;
-        waitMS(255);
-         */
       // Do a quick background work when RF packet is not received
       // https://doc.iqrf.org/DpaTechGuide/pages/idle.html
       break;
@@ -122,8 +114,12 @@ bit CustomDpaHandler()
     case DpaEvent_Init:
       // Do a one time initialization before main loop starts
       // https://doc.iqrf.org/DpaTechGuide/pages/init.html
-        TRISC.2 = 0;
-        TRISC.5 = 0;
+        TRISC.PIN1 = 0;
+	    TRISC.PIN2 = 0;
+        TRISC.PIN3 = 0;
+	    LATC.PIN1 = 0;
+	    LATC.PIN2 = 0;
+	    LATC.PIN3 = 0;
       break;
 
       // -------------------------------------------------
@@ -144,25 +140,168 @@ bit CustomDpaHandler()
     case DpaEvent_Notification:
         if ( _PNUM == PNUM_RAM && _PCMD == CMD_RAM_WRITE )
         {
-            LATC.2 = PeripheralRam[0];
-            LATC.5 = PeripheralRam[1];
-            /*
-            uns8 counter = 0;
-            while (counter < PeripheralRam[0]) {
-                setLEDR();
-                waitMS(PeripheralRam[1]);
-                stopLEDR();
-                waitMS(PeripheralRam[2]);
-                counter++;
+            // w pamięci ram od bajtu 0 zapisana jest sekwencja
+            // kończy się na bajcie o wartości 0
+            // przy miganiu zakładany jest stan 0 na początku i końcu
+            // syntax w bajtach kolejno (max 55!:
+            // <kod> <czas czekania (ms)> <mnożnik opóźnienia> (<mnożnik świecenia przy miganiu>) (<ilość przy miganiu>) ... 0x00 / koniec
+            // kody:
+            // 0x00 - koniec
+            // 0x01 - wylacz pin 1
+            // 0x02 - wlacz pin 1
+            // 0x03 - migaj pin 1
+            // 0x04 - wylacz pin 2
+            // 0x05 - wlacz pin 2
+            // 0x06 - migaj pin 2
+            // 0x07 - wylacz pin 3
+            // 0x08 - wlacz pin 3
+            // 0x09 - migaj pin 3
+
+            // W przyszłości możnaby skompresować rozkazy w przypadku potrzeby zmieszczenia większej ilości
+
+            uns8 index = 0;
+            while (PeripheralRam[index] != 0x00 && index < 52) {
+                if (index >= 50 && (PeripheralRam[index] == 0x03 || PeripheralRam[index] == 0x06 || PeripheralRam[index] == 0x09)) {
+                    return 0;
+                }
+
+                switch (PeripheralRam[index]) {
+                    case 0x01:
+                    {
+                        uns8 counter = 0;
+                        while (counter < PeripheralRam[index + 2]) {
+                            waitMS(PeripheralRam[index + 1]);
+                            counter++;
+                        }
+                        LATC.PIN1 = 0;
+                        index += 3;
+                    }
+                        break;
+                    case 0x02:
+                    {
+                        uns8 counter = 0;
+                        while (counter < PeripheralRam[index + 2]) {
+                            waitMS(PeripheralRam[index + 1]);
+                            counter++;
+                        }
+                        LATC.PIN1 = 1;
+                        index += 3;
+                    }
+                        break;
+                    case 0x03:
+                    {
+                        LATC.PIN1 = 0;
+                        uns8 blinks = 0;
+                        while (blinks < PeripheralRam[index + 4]) {
+                            uns8 counter = 0;
+                            while (counter < PeripheralRam[index + 2]) {
+                                waitMS(PeripheralRam[index + 1]);
+                                counter++;
+                            }
+                            LATC.PIN1 = 1;
+                            counter = 0;
+                            while (counter < PeripheralRam[index + 3]) {
+                                waitMS(PeripheralRam[index + 1]);
+                                counter++;
+                            }
+                            LATC.PIN1 = 0;
+                            blinks++;
+                        }
+                        index += 5;
+                    }
+                        break;
+                    case 0x04:
+                    {
+                        uns8 counter = 0;
+                        while (counter < PeripheralRam[index + 2]) {
+                            waitMS(PeripheralRam[index + 1]);
+                            counter++;
+                        }
+                        LATC.PIN2 = 0;
+                        index += 3;
+                    }
+                        break;
+                    case 0x05:
+                    {
+                        uns8 counter = 0;
+                        while (counter < PeripheralRam[index + 2]) {
+                            waitMS(PeripheralRam[index + 1]);
+                            counter++;
+                        }
+                        LATC.PIN2 = 1;
+                        index += 3;
+                    }
+                        break;
+                    case 0x06:
+                    {
+                        LATC.PIN2 = 0;
+                        uns8 blinks = 0;
+                        while (blinks < PeripheralRam[index + 4]) {
+                            uns8 counter = 0;
+                            while (counter < PeripheralRam[index + 2]) {
+                                waitMS(PeripheralRam[index + 1]);
+                                counter++;
+                            }
+                            LATC.PIN2 = 1;
+                            counter = 0;
+                            while (counter < PeripheralRam[index + 3]) {
+                                waitMS(PeripheralRam[index + 1]);
+                                counter++;
+                            }
+                            LATC.PIN2 = 0;
+                            blinks++;
+                        }
+                        index += 5;
+                    }
+                        break;
+                    case 0x07:
+                    {
+                        uns8 counter = 0;
+                        while (counter < PeripheralRam[index + 2]) {
+                            waitMS(PeripheralRam[index + 1]);
+                            counter++;
+                        }
+                        LATC.PIN3 = 0;
+                        index += 3;
+                    }
+                        break;
+                    case 0x08:
+                    {
+                        uns8 counter = 0;
+                        while (counter < PeripheralRam[index + 2]) {
+                            waitMS(PeripheralRam[index + 1]);
+                            counter++;
+                        }
+                        LATC.PIN3 = 1;
+                        index += 3;
+                    }
+                        break;
+                    case 0x09:
+                    {
+                        LATC.PIN3 = 0;
+                        uns8 blinks = 0;
+                        while (blinks < PeripheralRam[index + 4]) {
+                            uns8 counter = 0;
+                            while (counter < PeripheralRam[index + 2]) {
+                                waitMS(PeripheralRam[index + 1]);
+                                counter++;
+                            }
+                            LATC.PIN3 = 1;
+                            counter = 0;
+                            while (counter < PeripheralRam[index + 3]) {
+                                waitMS(PeripheralRam[index + 1]);
+                                counter++;
+                            }
+                            LATC.PIN3 = 0;
+                            blinks++;
+                        }
+                        index += 5;
+                    }
+                        break;
+                    default:
+                        return 0;
+                }
             }
-            counter = 0;
-            while (counter < PeripheralRam[3]) {
-                setLEDG();
-                waitMS(PeripheralRam[4]);
-                stopLEDG();
-                waitMS(PeripheralRam[5]);
-                counter++;
-            }*/
         }
       // Called after DPA request was processed and after DPA response was sent
       // https://doc.iqrf.org/DpaTechGuide/pages/notification.html
