@@ -51,6 +51,18 @@
 #define PIN2 3
 #define PIN3 5
 
+#define currentIndex PeripheralRam[55]
+#define currentCounts PeripheralRam[56]
+#define currentCounter PeripheralRam[57]
+#define currentBlinks PeripheralRam[58]
+#define currentMeta PeripheralRam[59]
+#define currentGroup PeripheralRam[60]
+#define currentRepeat PeripheralRam[61]
+
+#define idleIndex 55
+#define last 54
+#define maxIdleTime 5
+
 bit CustomDpaHandler()
 //############################################################################################
 {
@@ -80,6 +92,261 @@ bit CustomDpaHandler()
 
       // -------------------------------------------------
     case DpaEvent_Idle:
+        // akcja przy bezczynności
+        // trzeba założyć, że ten kod może być przerwany!
+        // trzeba zapisać wszystkie dane i wykonać operacje, dopiero po czym można wprowadzić zmiany
+
+        // na początku sprawdzamy co w ogóle robimy
+        if (currentIndex != idleIndex) {
+            // to oznacza, że jest instrukcja do wykonania
+            // pobieranie zmiennych na wypadek przerwania
+            uns8 index = currentIndex;
+            uns8 oldIndex = index;
+            uns8 counts = currentCounts;
+            uns8 counter = currentCounter;
+            uns8 counterTarget = 0;
+            uns8 countTarget = 0;
+            uns8 blinks = currentBlinks;
+            uns8 next = 0;
+            
+            // dane o obecnej instrukcji
+            uns8 action = PeripheralRam[currentIndex] & 0x0F;
+            uns8 instructionGroup = (PeripheralRam[currentIndex] & 0xF0) >> 4;
+            
+            // metadane - obecny status instrukcji skomplikowanej i grupa
+            uns8 meta = currentMeta;
+            uns8 group = currentGroup;
+            
+
+            // sprawdzanie czy ta grupa ma to robić
+            if (group == instructionGroup || instructionGroup == 0) {
+
+                if (action == 0) {
+                    next = 1;
+                }
+                else if (action == 10) {
+                    if (index > last - 1) {
+                        next = 1;
+                        action = 0;
+                    }
+                    else {
+                        next = 1;
+                        group = PeripheralRam[index + 1];
+                    }
+
+                }
+                else if (action == 11) {
+                    next = 1;
+                    currentRepeat = 1;
+                }
+                else if (action == 12) {
+                    next = 1;
+                    currentRepeat = 0;
+                }
+                else if (action == 3 || action == 6 || action == 9) {
+                    // miganie
+                    if (blinks == PeripheralRam[index + 4]) {
+                        next = 1;
+                    }
+                    else if (index > last - 5) {
+                        next = 1;
+                        action = 0;
+                    }
+                    else if (meta == 0) {
+                        counterTarget = PeripheralRam[index + 1];
+                        countTarget = PeripheralRam[index + 2];
+                        switch (action) {
+                            case 3:
+                                LATC.PIN1 = 0;
+                                break;
+                            case 6:
+                                LATC.PIN2 = 0;
+                                break;
+                            case 9:
+                                LATC.PIN3 = 0;
+                                break;
+                        }
+                        if (counts < countTarget && counter < counterTarget) {
+                            if (counter <= (255 - maxIdleTime) && counterTarget >= counter + maxIdleTime) {
+                                waitMS(maxIdleTime);
+                                counter += maxIdleTime;
+                            }
+                            else {
+                                waitMS(counterTarget - counter);
+                                counter = counterTarget;
+                            }
+
+                            if (counter >= counterTarget) {
+                                counter = 0;
+                                counts++;
+                                if (counts >= countTarget) {
+                                    meta = 1;
+                                    stopLEDR();
+                                    counts = 0;
+                                }
+                            }
+                        }
+                        else {
+                            meta = 1;
+                            counter = 0;
+                            counts = 0;
+                        }
+                    }
+                    else {
+                        counterTarget = PeripheralRam[index + 1];
+                        countTarget = PeripheralRam[index + 3];
+                        switch (action) {
+                            case 3:
+                                LATC.PIN1 = 1;
+                                break;
+                            case 6:
+                                LATC.PIN2 = 1;
+                                break;
+                            case 9:
+                                LATC.PIN3 = 1;
+                                break;
+                        }
+                        if (counts < countTarget && counter < counterTarget) {
+                            if (counter <= (255 - maxIdleTime) && counterTarget >= counter + maxIdleTime) {
+                                waitMS(maxIdleTime);
+                                counter += maxIdleTime;
+                            }
+                            else {
+                                waitMS(counterTarget - counter);
+                                counter = counterTarget;
+                            }
+
+                            if (counter >= counterTarget) {
+                                counter = 0;
+                                counts++;
+                                if (counts >= countTarget) {
+                                    meta = 0;
+                                    counts = 0;
+                                    blinks++;
+                                }
+                            }
+                        }
+                        else {
+                            meta = 0;
+                            counter = 0;
+                            counts = 0;
+                            blinks = blinks + 1;
+                            if (blinks >= PeripheralRam[index + 4]) {
+                                next = 1;
+                            }
+                        }
+
+                        if (next) {
+                            switch (action) {
+                                case 3:
+                                    LATC.PIN1 = 0;
+                                    break;
+                                case 6:
+                                    LATC.PIN2 = 0;
+                                    break;
+                                case 9:
+                                    LATC.PIN3 = 0;
+                                    break;
+                            }
+                        }
+                    }
+                }
+                else {
+                    // włączenie / wyłączenie
+                    // tylko liczenie
+
+                    counterTarget = PeripheralRam[index + 1];
+                    countTarget = PeripheralRam[index + 2];
+                    if (index > last - 3) {
+                        next = 1;
+                        action = 0;
+                    }
+                    else if (counts < countTarget && counter < counterTarget) {
+                        if (counter <= (255 - maxIdleTime) && counterTarget >= counter + maxIdleTime) {
+                            waitMS(maxIdleTime);
+                            counter += maxIdleTime;
+                        }
+                        else {
+                            waitMS(counterTarget - counter);
+                            counter = counterTarget;
+                        }
+
+                        if (counter >= counterTarget) {
+                            counter = 0;
+                            counts = counts + 1;
+                            if (counts >= countTarget) {
+                                next = 1;
+                            }
+                        }
+                    }
+                    else {
+                        next = 1;
+                    }
+
+                    if (next) {
+                        switch (action) {
+                            case 1:
+                                LATC.PIN1 = 0;
+                                break;
+                            case 2:
+                                LATC.PIN1 = 1;
+                                break;
+                            case 4:
+                                LATC.PIN2 = 0;
+                                break;
+                            case 5:
+                                LATC.PIN2 = 1;
+                                break;
+                            case 7:
+                                LATC.PIN3 = 0;
+                                break;
+                            case 8:
+                                LATC.PIN3 = 1;
+                                break;
+                        }
+                    }
+                }
+            }
+            else {
+                next = 1;
+            }
+
+            // po tym wszystkim ustawianie kolejnej instrukcji jeżeli trzeba i jeżeli nie było zmian
+            if (next/* && index == currentIndex && action + (instructionGroup << 4) == PeripheralRam[oldIndex]*/) {
+                blinks = 0;
+                meta = 0;
+                counts = 0;
+                counter = 0;
+                if (action == 0) {
+                    if (currentRepeat) index = 0;
+                    else index = idleIndex;
+                }
+                else if (action == 3 || action == 6 || action == 9) {
+                    index += 5;
+                }
+                else if (action == 10) {
+                    index += 2;
+                }
+                else if (action == 10 || action == 11) {
+                    index++;
+                }
+                else {
+                    index += 3;
+                }
+            }
+
+            //if (action + (instructionGroup << 4) == PeripheralRam[oldIndex]) {
+                currentIndex = index;
+                currentBlinks = blinks;
+                currentMeta = meta;
+                currentGroup = group;
+                currentCounts = counts;
+                currentCounter = counter;
+            //}
+
+            // ustawianie nowych wartości jeżeli się nie zmieniły
+        }
+
       // Do a quick background work when RF packet is not received
       // https://doc.iqrf.org/DpaTechGuide/pages/idle.html
       break;
@@ -120,6 +387,14 @@ bit CustomDpaHandler()
 	    LATC.PIN1 = 0;
 	    LATC.PIN2 = 0;
 	    LATC.PIN3 = 0;
+          currentMeta = 0;
+          currentGroup = 0;
+          currentBlinks = 0;
+          currentIndex = idleIndex;
+          currentCounter = 0;
+          currentCounts = 0;
+          currentRepeat = 0;
+          PeripheralRam[0] = 0;
       break;
 
       // -------------------------------------------------
@@ -140,168 +415,12 @@ bit CustomDpaHandler()
     case DpaEvent_Notification:
         if ( _PNUM == PNUM_RAM && _PCMD == CMD_RAM_WRITE )
         {
-            // w pamięci ram od bajtu 0 zapisana jest sekwencja
-            // kończy się na bajcie o wartości 0
-            // przy miganiu zakładany jest stan 0 na początku i końcu
-            // syntax w bajtach kolejno (max 55!:
-            // <kod> <czas czekania (ms)> <mnożnik opóźnienia> (<mnożnik świecenia przy miganiu>) (<ilość przy miganiu>) ... 0x00 / koniec
-            // kody:
-            // 0x00 - koniec
-            // 0x01 - wylacz pin 1
-            // 0x02 - wlacz pin 1
-            // 0x03 - migaj pin 1
-            // 0x04 - wylacz pin 2
-            // 0x05 - wlacz pin 2
-            // 0x06 - migaj pin 2
-            // 0x07 - wylacz pin 3
-            // 0x08 - wlacz pin 3
-            // 0x09 - migaj pin 3
-
-            // W przyszłości możnaby skompresować rozkazy w przypadku potrzeby zmieszczenia większej ilości
-
-            uns8 index = 0;
-            while (PeripheralRam[index] != 0x00 && index < 52) {
-                if (index >= 50 && (PeripheralRam[index] == 0x03 || PeripheralRam[index] == 0x06 || PeripheralRam[index] == 0x09)) {
-                    return 0;
-                }
-
-                switch (PeripheralRam[index]) {
-                    case 0x01:
-                    {
-                        uns8 counter = 0;
-                        while (counter < PeripheralRam[index + 2]) {
-                            waitMS(PeripheralRam[index + 1]);
-                            counter++;
-                        }
-                        LATC.PIN1 = 0;
-                        index += 3;
-                    }
-                        break;
-                    case 0x02:
-                    {
-                        uns8 counter = 0;
-                        while (counter < PeripheralRam[index + 2]) {
-                            waitMS(PeripheralRam[index + 1]);
-                            counter++;
-                        }
-                        LATC.PIN1 = 1;
-                        index += 3;
-                    }
-                        break;
-                    case 0x03:
-                    {
-                        LATC.PIN1 = 0;
-                        uns8 blinks = 0;
-                        while (blinks < PeripheralRam[index + 4]) {
-                            uns8 counter = 0;
-                            while (counter < PeripheralRam[index + 2]) {
-                                waitMS(PeripheralRam[index + 1]);
-                                counter++;
-                            }
-                            LATC.PIN1 = 1;
-                            counter = 0;
-                            while (counter < PeripheralRam[index + 3]) {
-                                waitMS(PeripheralRam[index + 1]);
-                                counter++;
-                            }
-                            LATC.PIN1 = 0;
-                            blinks++;
-                        }
-                        index += 5;
-                    }
-                        break;
-                    case 0x04:
-                    {
-                        uns8 counter = 0;
-                        while (counter < PeripheralRam[index + 2]) {
-                            waitMS(PeripheralRam[index + 1]);
-                            counter++;
-                        }
-                        LATC.PIN2 = 0;
-                        index += 3;
-                    }
-                        break;
-                    case 0x05:
-                    {
-                        uns8 counter = 0;
-                        while (counter < PeripheralRam[index + 2]) {
-                            waitMS(PeripheralRam[index + 1]);
-                            counter++;
-                        }
-                        LATC.PIN2 = 1;
-                        index += 3;
-                    }
-                        break;
-                    case 0x06:
-                    {
-                        LATC.PIN2 = 0;
-                        uns8 blinks = 0;
-                        while (blinks < PeripheralRam[index + 4]) {
-                            uns8 counter = 0;
-                            while (counter < PeripheralRam[index + 2]) {
-                                waitMS(PeripheralRam[index + 1]);
-                                counter++;
-                            }
-                            LATC.PIN2 = 1;
-                            counter = 0;
-                            while (counter < PeripheralRam[index + 3]) {
-                                waitMS(PeripheralRam[index + 1]);
-                                counter++;
-                            }
-                            LATC.PIN2 = 0;
-                            blinks++;
-                        }
-                        index += 5;
-                    }
-                        break;
-                    case 0x07:
-                    {
-                        uns8 counter = 0;
-                        while (counter < PeripheralRam[index + 2]) {
-                            waitMS(PeripheralRam[index + 1]);
-                            counter++;
-                        }
-                        LATC.PIN3 = 0;
-                        index += 3;
-                    }
-                        break;
-                    case 0x08:
-                    {
-                        uns8 counter = 0;
-                        while (counter < PeripheralRam[index + 2]) {
-                            waitMS(PeripheralRam[index + 1]);
-                            counter++;
-                        }
-                        LATC.PIN3 = 1;
-                        index += 3;
-                    }
-                        break;
-                    case 0x09:
-                    {
-                        LATC.PIN3 = 0;
-                        uns8 blinks = 0;
-                        while (blinks < PeripheralRam[index + 4]) {
-                            uns8 counter = 0;
-                            while (counter < PeripheralRam[index + 2]) {
-                                waitMS(PeripheralRam[index + 1]);
-                                counter++;
-                            }
-                            LATC.PIN3 = 1;
-                            counter = 0;
-                            while (counter < PeripheralRam[index + 3]) {
-                                waitMS(PeripheralRam[index + 1]);
-                                counter++;
-                            }
-                            LATC.PIN3 = 0;
-                            blinks++;
-                        }
-                        index += 5;
-                    }
-                        break;
-                    default:
-                        return 0;
-                }
-            }
+            currentIndex = 0;
+            currentBlinks = 0;
+            currentMeta = 0;
+            currentCounts = 0;
+            currentCounter = 0;
+            currentRepeat = 0;
         }
       // Called after DPA request was processed and after DPA response was sent
       // https://doc.iqrf.org/DpaTechGuide/pages/notification.html
